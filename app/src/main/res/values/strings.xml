@@ -4,5 +4,7 @@
     <string name="app_name">얼마썼니?</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="button_string_sort_order_ascending">ASCENDING</string>
+    <string name="button_string_sort_order_descending">DESCENDING</string>
 
 </resources>

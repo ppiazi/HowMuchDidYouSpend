@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 
 import com.tistory.ppiazi.howmuchdidyouspend.R;
@@ -27,6 +28,8 @@ public class DetailSmsActivity extends Activity
     private TreeMap<String, Long> MapDataByDate;
     private ArrayAdapter<String> DataByDateAdapter;
     private ListView DataByDateListView;
+    private Button ButtonSortOrder;
+    private boolean isAscending = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -40,6 +43,9 @@ public class DetailSmsActivity extends Activity
         SerializableCardSmsContainer tmp = (SerializableCardSmsContainer) intent.getSerializableExtra("CardSmsEntity");
         RawData = tmp.getData();
 
+        ButtonSortOrder = (Button) findViewById(R.id.button_sort_order);
+        isAscending = false;
+
         makeList();
         refreshList();
     }
@@ -47,8 +53,16 @@ public class DetailSmsActivity extends Activity
     protected void refreshList()
     {
         DataByDateAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
-        Set<String> set = MapDataByDate.keySet();
-        Iterator<String> iter = set.iterator();
+        Iterator<String> iter;
+
+        if ( isAscending == true )
+        {
+            iter = MapDataByDate.keySet().iterator();
+        }
+        else
+        {
+            iter = MapDataByDate.descendingKeySet().iterator();
+        }
 
         while (iter.hasNext())
         {
@@ -77,7 +91,7 @@ public class DetailSmsActivity extends Activity
             int year = cal.get(Calendar.YEAR);
             int month = cal.get(Calendar.MONTH);
 
-            String tmp_key = String.format("%04d-%02d", year, month + 1);
+            String tmp_key = String.format("%04d년 %02d월", year, month + 1);
 
             Long tmpLong = MapDataByDate.get(tmp_key);
             if (tmpLong == null)
@@ -95,5 +109,20 @@ public class DetailSmsActivity extends Activity
     public void onReturnButtonClicked(View v)
     {
         finish();
+    }
+    public void onChangeSortOrder(View v)
+    {
+        if ( isAscending == true )
+        {
+            isAscending = false;
+            ButtonSortOrder.setText(R.string.button_string_sort_order_descending);
+        }
+        else
+        {
+            isAscending = true;
+            ButtonSortOrder.setText(R.string.button_string_sort_order_ascending);
+        }
+
+        refreshList();
     }
 }

@@ -1,6 +1,9 @@
-package com.tistory.ppiazi.howmuchdidyouspend;
+package com.tistory.ppiazi.howmuchdidyouspend.smsanalyzer;
 
 import android.util.Log;
+
+import com.tistory.ppiazi.howmuchdidyouspend.CardSmsEntity;
+import com.tistory.ppiazi.howmuchdidyouspend.SmsEntity;
 
 import java.util.Enumeration;
 import java.util.Vector;

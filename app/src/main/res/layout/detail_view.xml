@@ -19,11 +19,13 @@
             android:text="Return"/>
 
         <Button
-            android:id="@+id/button_reload"
+            android:id="@+id/button_sort_order"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Reload"/>
+            android:text="@string/button_string_sort_order_descending"
+            android:onClick="onChangeSortOrder"
+            android:nestedScrollingEnabled="true"/>
     </LinearLayout>
 
     <ListView
