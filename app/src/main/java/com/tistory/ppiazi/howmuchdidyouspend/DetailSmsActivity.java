@@ -50,6 +50,10 @@ public class DetailSmsActivity extends Activity
         refreshList();
     }
 
+    /**
+     * makeList() 함수로부터 만들어진 TreeMap을 사용하여 화면에 출력한다.
+     * isAscending 변수값으로 ASCENDING / DESCENDING 을 결정한다.
+     */
     protected void refreshList()
     {
         DataByDateAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
@@ -76,6 +80,10 @@ public class DetailSmsActivity extends Activity
         DataByDateListView.setAdapter(DataByDateAdapter);
     }
 
+    /**
+     * SMS 들로부터 날짜 정보와 결제 금액 정보를 추출하여, 월별 데이터를 생성한다.
+     * TreeMap을 사용하여 Key로 정렬할 수 있도록 한다.
+     */
     protected void makeList()
     {
         MapDataByDate = new TreeMap<String, Long>();
