@@ -20,9 +20,9 @@ import com.tistory.ppiazi.howmuchdidyouspend.smsanalyzer.ShinhanCreditCardSmsAna
 import com.tistory.ppiazi.howmuchdidyouspend.smsanalyzer.SmsAnalyzer;
 
 import java.text.DecimalFormat;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.Vector;
 
 
@@ -30,7 +30,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 {
     private static final String TAG = "SMSReadTest";
 
-    private ListView SmsList;
+    private ListView SmsSummaryList;
     private ArrayAdapter<String> CardListAdapter;
     private Vector<SmsEntity> SmsRawData;
     private HashMap<String, SmsAnalyzer> SmsAnalyzers;
@@ -43,7 +43,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        SmsList = (ListView) findViewById(R.id.listView);
+        SmsSummaryList = (ListView) findViewById(R.id.listView);
     }
 
     @Override
@@ -76,8 +76,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         Log.i(TAG, "onReadButtonClicked");
 
         init();
-        readSms();
+        readAllSms();
         analyzeSms();
+        retrieveSmsList();
     }
 
     /**
@@ -98,9 +99,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     }
 
     /**
-     * 읽어들인 SMS으로 부터 등록된 분석기 별로 데이터를 추출한다.
+     * 읽어들인 SMS 목록으로 부터 등록된 분석기 별로 결제 SMS 리스트를 만든다..
      */
-    private void analyzeSms()
+    public void analyzeSms()
     {
         if (SmsAnalyzers.size() == 0)
         {
@@ -108,28 +109,62 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             return;
         }
 
-        ListViewMap = new HashMap<Integer, String>();
-        Set<String> set = SmsAnalyzers.keySet();
-        Iterator<String> iter = set.iterator();
-
-        int pos = 0;
-        while (iter.hasNext())
+        Enumeration<SmsEntity> e = SmsRawData.elements();
+        while (e.hasMoreElements())
         {
-            String key = iter.next();
+            // SMS 하나를 가져온다.
+            SmsEntity entity = (SmsEntity) e.nextElement();
+
+            // 등록된 분석기들에 넣어 결제 SMS인지 판단한다.
+            Iterator<String> iter = SmsAnalyzers.keySet().iterator();
+
+            while (iter.hasNext())
+            {
+                // 분석기를 가져온다.
+                String key = iter.next();
+                SmsAnalyzer sa = (SmsAnalyzer) SmsAnalyzers.get(key);
+
+                // SMS에 맞는 분석기를 찾았기 때문에 다음 문자로 넘어간다.
+                if (sa.analyzeSms(entity) != null)
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * SMS 분석기 별  결제 SMS 목록을 저장한다.
+     * 화면에 분석한 결제 SMS 리스트를 전시한다..
+     */
+    public void retrieveSmsList()
+    {
+        // 모든 SMS의 분석이 끝났다면, 생성된 Vector<CardSmsEntity>를 저장한다.
+        Iterator<String> iter2 = SmsAnalyzers.keySet().iterator();
+        int pos = 0;
+        ListViewMap = new HashMap<Integer, String>();
+
+        while (iter2.hasNext())
+        {
+            // 분석기를 가져온다.
+            String key = iter2.next();
             SmsAnalyzer sa = (SmsAnalyzer) SmsAnalyzers.get(key);
 
-            Vector<CardSmsEntity> cse = sa.analyze(SmsRawData);
-            CardSmsResults.put(key, cse);
+            // 분석기에 등록된 결제 SMS가 하나라도 있다면, 리스트에 등록한다.
+            if (sa.getCount() != 0)
+            {
+                CardSmsResults.put(key, sa.getCardSmsList());
 
-            Toast.makeText(this, key + " " + sa.getCount() + " Found.", Toast.LENGTH_SHORT).show();
-            DecimalFormat df = new DecimalFormat("###,##0");
-            String listItemStr = String.format("%s\n총 SMS 개수 : %s 개\n총 결재금액 : %s", key, df.format((double) sa.getCount()), df.format((double) sa.getTotal()));
-            CardListAdapter.add(listItemStr);
-            ListViewMap.put(pos++, key);
+                Toast.makeText(this, key + " " + sa.getCount() + " Found.", Toast.LENGTH_SHORT).show();
+                DecimalFormat df = new DecimalFormat("###,##0");
+                String listItemStr = String.format("%s\n총 SMS 개수 : %s 개\n총 결재금액 : %s", key, df.format((double) sa.getCount()), df.format((double) sa.getTotal()));
+                CardListAdapter.add(listItemStr);
+                ListViewMap.put(pos++, key);
+            }
         }
 
-        SmsList.setAdapter(CardListAdapter);
-        SmsList.setOnItemClickListener(this);
+        SmsSummaryList.setAdapter(CardListAdapter);
+        SmsSummaryList.setOnItemClickListener(this);
     }
 
     /**
@@ -137,7 +172,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
      *
      * @return
      */
-    private int readSms()
+    private int readAllSms()
     {
         SmsRawData = new Vector<SmsEntity>();
 

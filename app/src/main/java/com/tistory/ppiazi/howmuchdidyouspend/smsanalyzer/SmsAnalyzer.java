@@ -17,6 +17,11 @@ public abstract class SmsAnalyzer
     private long Count = 0;
     private Vector<CardSmsEntity> CardSmsList;
 
+    public SmsAnalyzer()
+    {
+        initCardSmsList();
+    }
+
     public long getTotal()
     {
         return Total;
@@ -42,7 +47,7 @@ public abstract class SmsAnalyzer
         return CardSmsList;
     }
 
-    protected abstract CardSmsEntity parseBody(String str, SmsEntity se);
+    protected abstract CardSmsEntity parseSmsEntity(SmsEntity se);
 
     protected abstract long parseTime(String str);
 
@@ -50,16 +55,20 @@ public abstract class SmsAnalyzer
 
     protected abstract String parsePlace(String str);
 
-    public Vector<CardSmsEntity> analyze(Vector<SmsEntity> se)
+    public void initCardSmsList()
     {
         CardSmsList = new Vector<CardSmsEntity>();
+        CardSmsList.clear();
+    }
 
+    public Vector<CardSmsEntity> analyze(Vector<SmsEntity> se)
+    {
         Enumeration<SmsEntity> e = se.elements();
         while (e.hasMoreElements())
         {
             SmsEntity entity = (SmsEntity) e.nextElement();
 
-            CardSmsEntity ce = parseBody(entity.getBody(), entity);
+            CardSmsEntity ce = parseSmsEntity(entity);
 
             if (ce != null)
             {
@@ -73,5 +82,22 @@ public abstract class SmsAnalyzer
         }
 
         return CardSmsList;
+    }
+
+    public CardSmsEntity analyzeSms(SmsEntity se)
+    {
+        CardSmsEntity ce = parseSmsEntity(se);
+
+        if (ce != null)
+        {
+            Total = Total + ce.getCardCost();
+            Count = Count + 1;
+
+            CardSmsList.add(ce);
+
+            Log.i("SUM", "SUM = " + Total);
+        }
+
+        return ce;
     }
 }

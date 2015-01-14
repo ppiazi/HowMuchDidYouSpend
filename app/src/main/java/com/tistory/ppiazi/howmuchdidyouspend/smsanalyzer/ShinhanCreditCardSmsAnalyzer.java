@@ -18,8 +18,9 @@ public class ShinhanCreditCardSmsAnalyzer extends SmsAnalyzer
      * 신한은행 신용카드 SMS라면, CardSmsEntity 객체를 반환한다.
      * 신한은행 신용카드 SMS가 아니라면, null를 반환한다.
      */
-    protected CardSmsEntity parseBody(String str, SmsEntity se)
+    protected CardSmsEntity parseSmsEntity(SmsEntity se)
     {
+        String str = se.getBody();
         long ret = 0;
 
         // 특정문자가 있는지 판단한다.
