@@ -30,12 +30,13 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 {
     private static final String TAG = "SMSReadTest";
 
-    private ListView SmsSummaryList;
-    private ArrayAdapter<String> CardListAdapter;
-    private Vector<SmsEntity> SmsRawData;
-    private HashMap<String, SmsAnalyzer> SmsAnalyzers;
-    private HashMap<String, Vector<CardSmsEntity>> CardSmsResults;
-    private HashMap<Integer, String> ListViewMap;
+    private ListView listViewSmsSummary;
+    private ArrayAdapter<String> adapterCardList;
+    private Vector<SmsEntity> vectorSmsRawData;
+    private HashMap<String, SmsAnalyzer> mapSmsAnalyzers;
+    private HashMap<String, Vector<CardSmsEntity>> mapCardSmsResults;
+    private HashMap<Integer, String> listViewMap;
+    private BackPressCloseHandler closeHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -43,7 +44,14 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        SmsSummaryList = (ListView) findViewById(R.id.listView);
+        listViewSmsSummary = (ListView) findViewById(R.id.listView);
+        closeHandler = new BackPressCloseHandler(this);
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        closeHandler.onBackPressed();
     }
 
     @Override
@@ -87,15 +95,15 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     private void init()
     {
         // init SMS Analyzer
-        SmsAnalyzers = new HashMap<String, SmsAnalyzer>();
-        SmsAnalyzers.put("KB국민체크", new KukminCheckCardSmsAnalyzer());
-        SmsAnalyzers.put("신한신용카드", new ShinhanCreditCardSmsAnalyzer());
+        mapSmsAnalyzers = new HashMap<String, SmsAnalyzer>();
+        mapSmsAnalyzers.put("KB국민체크", new KukminCheckCardSmsAnalyzer());
+        mapSmsAnalyzers.put("신한신용카드", new ShinhanCreditCardSmsAnalyzer());
 
-        // craete HashMap for CardSmsResults
-        CardSmsResults = new HashMap<String, Vector<CardSmsEntity>>();
+        // craete HashMap
+        mapCardSmsResults = new HashMap<String, Vector<CardSmsEntity>>();
 
         // craete ListAdapter
-        CardListAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        adapterCardList = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
     }
 
     /**
@@ -103,26 +111,26 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
      */
     public void analyzeSms()
     {
-        if (SmsAnalyzers.size() == 0)
+        if (mapSmsAnalyzers.size() == 0)
         {
             Toast.makeText(this, "No SMS Analyzer set", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Enumeration<SmsEntity> e = SmsRawData.elements();
+        Enumeration<SmsEntity> e = vectorSmsRawData.elements();
         while (e.hasMoreElements())
         {
             // SMS 하나를 가져온다.
             SmsEntity entity = (SmsEntity) e.nextElement();
 
             // 등록된 분석기들에 넣어 결제 SMS인지 판단한다.
-            Iterator<String> iter = SmsAnalyzers.keySet().iterator();
+            Iterator<String> iter = mapSmsAnalyzers.keySet().iterator();
 
             while (iter.hasNext())
             {
                 // 분석기를 가져온다.
                 String key = iter.next();
-                SmsAnalyzer sa = (SmsAnalyzer) SmsAnalyzers.get(key);
+                SmsAnalyzer sa = (SmsAnalyzer) mapSmsAnalyzers.get(key);
 
                 // SMS에 맞는 분석기를 찾았기 때문에 다음 문자로 넘어간다.
                 if (sa.analyzeSms(entity) != null)
@@ -140,31 +148,31 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     public void retrieveSmsList()
     {
         // 모든 SMS의 분석이 끝났다면, 생성된 Vector<CardSmsEntity>를 저장한다.
-        Iterator<String> iter2 = SmsAnalyzers.keySet().iterator();
+        Iterator<String> iter2 = mapSmsAnalyzers.keySet().iterator();
         int pos = 0;
-        ListViewMap = new HashMap<Integer, String>();
+        listViewMap = new HashMap<Integer, String>();
 
         while (iter2.hasNext())
         {
             // 분석기를 가져온다.
             String key = iter2.next();
-            SmsAnalyzer sa = (SmsAnalyzer) SmsAnalyzers.get(key);
+            SmsAnalyzer sa = (SmsAnalyzer) mapSmsAnalyzers.get(key);
 
             // 분석기에 등록된 결제 SMS가 하나라도 있다면, 리스트에 등록한다.
             if (sa.getCount() != 0)
             {
-                CardSmsResults.put(key, sa.getCardSmsList());
+                mapCardSmsResults.put(key, sa.getCardSmsList());
 
                 Toast.makeText(this, key + " " + sa.getCount() + " Found.", Toast.LENGTH_SHORT).show();
                 DecimalFormat df = new DecimalFormat("###,##0");
                 String listItemStr = String.format("%s\n총 SMS 개수 : %s 개\n총 결재금액 : %s", key, df.format((double) sa.getCount()), df.format((double) sa.getTotal()));
-                CardListAdapter.add(listItemStr);
-                ListViewMap.put(pos++, key);
+                adapterCardList.add(listItemStr);
+                listViewMap.put(pos++, key);
             }
         }
 
-        SmsSummaryList.setAdapter(CardListAdapter);
-        SmsSummaryList.setOnItemClickListener(this);
+        listViewSmsSummary.setAdapter(adapterCardList);
+        listViewSmsSummary.setOnItemClickListener(this);
     }
 
     /**
@@ -174,7 +182,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
      */
     private int readAllSms()
     {
-        SmsRawData = new Vector<SmsEntity>();
+        vectorSmsRawData = new Vector<SmsEntity>();
 
         Uri allMessages = Uri.parse("content://sms");
         ContentResolver cr = getContentResolver();
@@ -196,7 +204,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             se.setTimeStamp(c.getLong(4));
             se.setBody(c.getString(5));
 
-            SmsRawData.add(se);
+            vectorSmsRawData.add(se);
         }
 
         return 0;
@@ -212,14 +220,14 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     {
         Intent intent = new Intent(this, DetailSmsActivity.class);
 
-        String key = ListViewMap.get(position);
+        String key = listViewMap.get(position);
         if (key == null)
         {
             return;
         }
 
         SerializableCardSmsContainer tmp = new SerializableCardSmsContainer();
-        tmp.setData(CardSmsResults.get(key));
+        tmp.setVectorCardSmsData(mapCardSmsResults.get(key));
         intent.putExtra("CardSmsEntity", tmp);
         startActivity(intent);
     }

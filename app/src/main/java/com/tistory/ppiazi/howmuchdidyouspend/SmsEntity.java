@@ -7,100 +7,100 @@ import java.io.Serializable;
  */
 public class SmsEntity implements Serializable
 {
-    protected long MsgId = 0;
-    protected long ThreadId = 0;
-    protected String Address = "";
-    protected String Person = "";
-    protected long ContactId = 0;
-    protected String ContactStr = "";
-    protected long TimeStamp = 0;
-    protected String Body = "";
+    protected long msgId = 0;
+    protected long threadId = 0;
+    protected String address = "";
+    protected String person = "";
+    protected long contactId = 0;
+    protected String contactStr = "";
+    protected long timeStamp = 0;
+    protected String body = "";
 
     public long getMsgId()
     {
-        return MsgId;
+        return msgId;
     }
 
     public void setMsgId(long msgId)
     {
-        MsgId = msgId;
+        this.msgId = msgId;
     }
 
     public long getThreadId()
     {
-        return ThreadId;
+        return threadId;
     }
 
     public void setThreadId(long threadId)
     {
-        ThreadId = threadId;
+        this.threadId = threadId;
     }
 
     public String getAddress()
     {
-        return Address;
+        return address;
     }
 
     public void setAddress(String address)
     {
-        Address = address;
+        this.address = address;
     }
 
     public String getPerson()
     {
-        return Person;
+        return person;
     }
 
     public void setPerson(String person)
     {
-        Person = person;
+        this.person = person;
     }
 
     public long getContactId()
     {
-        return ContactId;
+        return contactId;
     }
 
     public void setContactId(long contactId)
     {
-        ContactId = contactId;
+        this.contactId = contactId;
     }
 
     public String getContactStr()
     {
-        return ContactStr;
+        return contactStr;
     }
 
     public void setContactStr(String contactStr)
     {
-        ContactStr = contactStr;
+        this.contactStr = contactStr;
     }
 
     public long getTimeStamp()
     {
-        return TimeStamp;
+        return timeStamp;
     }
 
     public void setTimeStamp(long timeStamp)
     {
-        TimeStamp = timeStamp;
+        this.timeStamp = timeStamp;
     }
 
     public String getBody()
     {
-        return Body;
+        return body;
     }
 
     public void setBody(String body)
     {
-        Body = body;
+        this.body = body;
     }
 
     @Override
     public String toString()
     {
         String tmp;
-        tmp = String.format("MsgId:%d\nTimeStamp:%d\nThreadId:%d\nAddress:%s\nContactString:%s\nMsg=%s\n", MsgId, TimeStamp, ThreadId, Address, ContactStr, Body);
+        tmp = String.format("msgId:%d\ntimeStamp:%d\nthreadId:%d\naddress:%s\nContactString:%s\nMsg=%s\n", msgId, timeStamp, threadId, address, contactStr, body);
         return tmp;
     }
 }

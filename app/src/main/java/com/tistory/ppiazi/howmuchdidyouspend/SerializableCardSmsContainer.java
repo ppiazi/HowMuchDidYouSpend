@@ -8,15 +8,15 @@ import java.util.Vector;
  */
 public class SerializableCardSmsContainer implements Serializable
 {
-    private Vector<CardSmsEntity> Data;
+    private Vector<CardSmsEntity> vectorCardSmsData;
 
-    public Vector<CardSmsEntity> getData()
+    public Vector<CardSmsEntity> getVectorCardSmsData()
     {
-        return Data;
+        return vectorCardSmsData;
     }
 
-    public void setData(Vector<CardSmsEntity> data)
+    public void setVectorCardSmsData(Vector<CardSmsEntity> vectorCardSmsData)
     {
-        Data = data;
+        this.vectorCardSmsData = vectorCardSmsData;
     }
 }

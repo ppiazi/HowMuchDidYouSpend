@@ -5,38 +5,38 @@ package com.tistory.ppiazi.howmuchdidyouspend;
  */
 public class CardSmsEntity extends SmsEntity
 {
-    protected long CardCost = 0;
-    protected String PlaceInUse = "";
+    protected long cardCost = 0;
+    protected String placeInUse = "";
 
     public CardSmsEntity(SmsEntity se)
     {
-        MsgId = se.MsgId;
-        ThreadId = se.ThreadId;
-        Address = se.Address;
-        Person = se.Person;
-        ContactId = se.ContactId;
-        ContactStr = se.ContactStr;
-        TimeStamp = se.TimeStamp;
-        Body = se.Body;
+        msgId = se.msgId;
+        threadId = se.threadId;
+        address = se.address;
+        person = se.person;
+        contactId = se.contactId;
+        contactStr = se.contactStr;
+        timeStamp = se.timeStamp;
+        body = se.body;
     }
 
     public long getCardCost()
     {
-        return CardCost;
+        return cardCost;
     }
 
     public void setCardCost(long cardCost)
     {
-        CardCost = cardCost;
+        this.cardCost = cardCost;
     }
 
     public String getPlaceInUse()
     {
-        return PlaceInUse;
+        return placeInUse;
     }
 
     public void setPlaceInUse(String placeInUse)
     {
-        PlaceInUse = placeInUse;
+        this.placeInUse = placeInUse;
     }
 }

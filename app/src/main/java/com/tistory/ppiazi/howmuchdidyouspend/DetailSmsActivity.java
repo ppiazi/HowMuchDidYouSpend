@@ -8,14 +8,11 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 
-import com.tistory.ppiazi.howmuchdidyouspend.R;
-
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -24,11 +21,11 @@ import java.util.Vector;
  */
 public class DetailSmsActivity extends Activity
 {
-    private Vector<CardSmsEntity> RawData;
-    private TreeMap<String, Long> MapDataByDate;
-    private ArrayAdapter<String> DataByDateAdapter;
-    private ListView DataByDateListView;
-    private Button ButtonSortOrder;
+    private Vector<CardSmsEntity> vectorRawData;
+    private TreeMap<String, Long> mapDataByDate;
+    private ArrayAdapter<String> adapterDataByDate;
+    private ListView listViewDataByDate;
+    private Button buttonSortOrder;
     private boolean isAscending = false;
 
     @Override
@@ -37,13 +34,13 @@ public class DetailSmsActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detail_view);
 
-        DataByDateListView = (ListView) findViewById(R.id.list_detail);
+        listViewDataByDate = (ListView) findViewById(R.id.list_detail);
 
         Intent intent = getIntent();
         SerializableCardSmsContainer tmp = (SerializableCardSmsContainer) intent.getSerializableExtra("CardSmsEntity");
-        RawData = tmp.getData();
+        vectorRawData = tmp.getVectorCardSmsData();
 
-        ButtonSortOrder = (Button) findViewById(R.id.button_sort_order);
+        buttonSortOrder = (Button) findViewById(R.id.button_sort_order);
         isAscending = false;
 
         makeList();
@@ -56,28 +53,28 @@ public class DetailSmsActivity extends Activity
      */
     protected void refreshList()
     {
-        DataByDateAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        adapterDataByDate = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
         Iterator<String> iter;
 
         if ( isAscending == true )
         {
-            iter = MapDataByDate.keySet().iterator();
+            iter = mapDataByDate.keySet().iterator();
         }
         else
         {
-            iter = MapDataByDate.descendingKeySet().iterator();
+            iter = mapDataByDate.descendingKeySet().iterator();
         }
 
         while (iter.hasNext())
         {
             String key = iter.next();
-            Long tmpCost = (Long) MapDataByDate.get(key);
+            Long tmpCost = (Long) mapDataByDate.get(key);
             DecimalFormat df = new DecimalFormat("###,##0");
             String listItemStr = String.format("%s : %s", key, df.format(tmpCost));
-            DataByDateAdapter.add(listItemStr);
+            adapterDataByDate.add(listItemStr);
         }
 
-        DataByDateListView.setAdapter(DataByDateAdapter);
+        listViewDataByDate.setAdapter(adapterDataByDate);
     }
 
     /**
@@ -86,8 +83,8 @@ public class DetailSmsActivity extends Activity
      */
     protected void makeList()
     {
-        MapDataByDate = new TreeMap<String, Long>();
-        Enumeration<CardSmsEntity> e = RawData.elements();
+        mapDataByDate = new TreeMap<String, Long>();
+        Enumeration<CardSmsEntity> e = vectorRawData.elements();
 
         Calendar cal = Calendar.getInstance();
 
@@ -101,15 +98,15 @@ public class DetailSmsActivity extends Activity
 
             String tmp_key = String.format("%04d년 %02d월", year, month + 1);
 
-            Long tmpLong = MapDataByDate.get(tmp_key);
+            Long tmpLong = mapDataByDate.get(tmp_key);
             if (tmpLong == null)
             {
-                MapDataByDate.put(tmp_key, entity.getCardCost());
+                mapDataByDate.put(tmp_key, entity.getCardCost());
             }
             else
             {
                 tmpLong = tmpLong + entity.getCardCost();
-                MapDataByDate.put(tmp_key, tmpLong);
+                mapDataByDate.put(tmp_key, tmpLong);
             }
         }
     }
@@ -123,12 +120,12 @@ public class DetailSmsActivity extends Activity
         if ( isAscending == true )
         {
             isAscending = false;
-            ButtonSortOrder.setText(R.string.button_string_sort_order_descending);
+            buttonSortOrder.setText(R.string.button_string_sort_order_descending);
         }
         else
         {
             isAscending = true;
-            ButtonSortOrder.setText(R.string.button_string_sort_order_ascending);
+            buttonSortOrder.setText(R.string.button_string_sort_order_ascending);
         }
 
         refreshList();

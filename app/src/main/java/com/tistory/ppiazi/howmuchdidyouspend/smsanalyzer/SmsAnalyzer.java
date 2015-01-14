@@ -13,8 +13,8 @@ import java.util.Vector;
  */
 public abstract class SmsAnalyzer
 {
-    private long Total = 0;
-    private long Count = 0;
+    private long total = 0;
+    private long count = 0;
     private Vector<CardSmsEntity> CardSmsList;
 
     public SmsAnalyzer()
@@ -24,22 +24,22 @@ public abstract class SmsAnalyzer
 
     public long getTotal()
     {
-        return Total;
+        return total;
     }
 
     public void setTotal(long total)
     {
-        Total = total;
+        this.total = total;
     }
 
     public long getCount()
     {
-        return Count;
+        return count;
     }
 
     public void setCount(long count)
     {
-        Count = count;
+        this.count = count;
     }
 
     public Vector<CardSmsEntity> getCardSmsList()
@@ -72,12 +72,12 @@ public abstract class SmsAnalyzer
 
             if (ce != null)
             {
-                Total = Total + ce.getCardCost();
-                Count = Count + 1;
+                total = total + ce.getCardCost();
+                count = count + 1;
 
                 CardSmsList.add(ce);
 
-                Log.i("SUM", "SUM = " + Total);
+                Log.i("SUM", "SUM = " + total);
             }
         }
 
@@ -90,12 +90,12 @@ public abstract class SmsAnalyzer
 
         if (ce != null)
         {
-            Total = Total + ce.getCardCost();
-            Count = Count + 1;
+            total = total + ce.getCardCost();
+            count = count + 1;
 
             CardSmsList.add(ce);
 
-            Log.i("SUM", "SUM = " + Total);
+            Log.i("SUM", "SUM = " + total);
         }
 
         return ce;
