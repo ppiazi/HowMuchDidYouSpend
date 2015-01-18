@@ -15,10 +15,23 @@ public abstract class SmsAnalyzer
 {
     private long total = 0;
     private long count = 0;
+
+    public String getAnalyzerName()
+    {
+        return analyzerName;
+    }
+
+    public void setAnalyzerName(String analyzerName)
+    {
+        this.analyzerName = analyzerName;
+    }
+
+    protected String analyzerName = "";
     private Vector<CardSmsEntity> CardSmsList;
 
-    public SmsAnalyzer()
+    public SmsAnalyzer(String name)
     {
+        analyzerName = name;
         initCardSmsList();
     }
 
@@ -59,6 +72,19 @@ public abstract class SmsAnalyzer
     {
         CardSmsList = new Vector<CardSmsEntity>();
         CardSmsList.clear();
+    }
+
+    public void insertCardSmsEntity(CardSmsEntity cse)
+    {
+        if (cse != null)
+        {
+            total = total + cse.getCardCost();
+            count = count + 1;
+
+            CardSmsList.add(cse);
+
+            Log.i("SUM", "SUM = " + total);
+        }
     }
 
     public Vector<CardSmsEntity> analyze(Vector<SmsEntity> se)

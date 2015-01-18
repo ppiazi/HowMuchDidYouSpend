@@ -1,8 +1,10 @@
 package com.tistory.ppiazi.howmuchdidyouspend;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -28,7 +30,7 @@ import java.util.Vector;
 
 public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener
 {
-    private static final String TAG = "SMSReadTest";
+    private static final String TAG = "MainActivity";
 
     private ListView listViewSmsSummary;
     private ArrayAdapter<String> adapterCardList;
@@ -37,6 +39,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     private HashMap<String, Vector<CardSmsEntity>> mapCardSmsResults;
     private HashMap<Integer, String> listViewMap;
     private BackPressCloseHandler closeHandler;
+    private SQLiteDatabase db;
+    private CardSmsSqlHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -46,6 +50,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         listViewSmsSummary = (ListView) findViewById(R.id.listView);
         closeHandler = new BackPressCloseHandler(this);
+        dbHelper = new CardSmsSqlHelper(this, CardSmsSqlHelper.dbFileName, null, CardSmsSqlHelper.dbVersion);
+
+        initFromDb();
     }
 
     @Override
@@ -79,16 +86,24 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         return super.onOptionsItemSelected(item);
     }
 
-    public void onReadButtonClicked(View v)
+    public void onInitButtonClicked(View v)
     {
-        Log.i(TAG, "onReadButtonClicked");
+        Log.i(TAG, "onInitButtonClicked");
 
         init();
-        readAllSms();
+        readAllSmsFromContentProvider();
         analyzeSms();
         retrieveSmsList();
     }
 
+    public void initFromDb()
+    {
+        Toast.makeText(this, "Try to read from SMS DB.", Toast.LENGTH_SHORT).show();
+        init();
+        readAllSmsFromDB();
+        //analyzeSms(false);
+        retrieveSmsList();
+    }
     /**
      * SMS 읽기 위한 초기화를 수행한다.
      */
@@ -96,8 +111,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     {
         // init SMS Analyzer
         mapSmsAnalyzers = new HashMap<String, SmsAnalyzer>();
-        mapSmsAnalyzers.put("KB국민체크", new KukminCheckCardSmsAnalyzer());
-        mapSmsAnalyzers.put("신한신용카드", new ShinhanCreditCardSmsAnalyzer());
+        mapSmsAnalyzers.put("KB국민체크", new KukminCheckCardSmsAnalyzer("KB국민체크"));
+        mapSmsAnalyzers.put("신한신용카드", new ShinhanCreditCardSmsAnalyzer("신한신용카드"));
 
         // craete HashMap
         mapCardSmsResults = new HashMap<String, Vector<CardSmsEntity>>();
@@ -107,7 +122,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     }
 
     /**
-     * 읽어들인 SMS 목록으로 부터 등록된 분석기 별로 결제 SMS 리스트를 만든다..
+     * 읽어들인 SMS 목록으로 부터 등록된 분석기 별로 결제 SMS 리스트를 만든다.
+     * useDb Flag가 설정되어 있으면, SQL DB에 쓰기 시도한다.
      */
     public void analyzeSms()
     {
@@ -133,11 +149,44 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 SmsAnalyzer sa = (SmsAnalyzer) mapSmsAnalyzers.get(key);
 
                 // SMS에 맞는 분석기를 찾았기 때문에 다음 문자로 넘어간다.
-                if (sa.analyzeSms(entity) != null)
+                CardSmsEntity cse = sa.analyzeSms(entity);
+                if (cse != null)
                 {
+                    insertCardSmsEntityIntoCardSmsDb(cse);
                     break;
                 }
             }
+        }
+    }
+
+    void insertCardSmsEntityIntoCardSmsDb(CardSmsEntity cse)
+    {
+        db = dbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put("_id", cse.getTimeStamp());
+        values.put("msgId", cse.getMsgId());
+        values.put("threadId", cse.getThreadId());
+        values.put("address", cse.getAddress());
+        values.put("person", cse.getPerson());
+        values.put("contactId", cse.getContactId());
+        values.put("contactStr", cse.getContactStr());
+        values.put("timeStamp", cse.getTimeStamp());
+        values.put("vendorId", cse.getVendorName());
+        values.put("cardCost", cse.getCardCost());
+        values.put("placeInUse", cse.getPlaceInUse());
+        values.put("body", cse.getBody());
+
+        try
+        {
+            long id = db.insert(CardSmsSqlHelper.dbName, null, values);
+            Log.i(TAG, "New CardSmsEntity is successfully inserted.");
+        }
+        catch ( Exception e )
+        {
+            Log.i(TAG, "DB Insert Failed.");
+            e.printStackTrace();
         }
     }
 
@@ -175,12 +224,59 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         listViewSmsSummary.setOnItemClickListener(this);
     }
 
+    private int readAllSmsFromDB()
+    {
+        db = dbHelper.getReadableDatabase();
+        Cursor c = db.query(CardSmsSqlHelper.dbName, null, null, null, null, null, null);
+
+        while ( c.moveToNext() )
+        {
+            long _id = c.getLong(c.getColumnIndex("_id"));
+            long msgId = c.getLong(c.getColumnIndex("msgId"));
+            long threadId = c.getLong(c.getColumnIndex("threadId"));
+            String address = c.getString(c.getColumnIndex("address"));
+            String person = c.getString(c.getColumnIndex("person"));
+            long contactId = c.getLong(c.getColumnIndex("contactId"));
+            String contactStr = c.getString(c.getColumnIndex("contactStr"));
+            long timeStamp = c.getLong(c.getColumnIndex("timeStamp"));
+            String vendorId = c.getString(c.getColumnIndex("vendorId"));
+            long cardCost = c.getLong(c.getColumnIndex("cardCost"));
+            String placeInUse = c.getString(c.getColumnIndex("placeInUse"));
+            String body = c.getString(c.getColumnIndex("body"));
+
+            CardSmsEntity cse = new CardSmsEntity(vendorId);
+            cse.setMsgId(msgId);
+            cse.setThreadId(threadId);
+            cse.setAddress(address);
+            cse.setPerson(person);
+            cse.setContactId(contactId);
+            cse.setContactStr(contactStr);
+            cse.setTimeStamp(timeStamp);
+            cse.setVendorName(vendorId);
+            cse.setCardCost(cardCost);
+            cse.setPlaceInUse(placeInUse);
+            cse.setBody(body);
+
+            SmsAnalyzer sa = (SmsAnalyzer) mapSmsAnalyzers.get(vendorId);
+            if ( sa == null )
+            {
+                Log.e(TAG, vendorId + " SmsAnalyzer not Found!!");
+            }
+            else
+            {
+                sa.insertCardSmsEntity(cse);
+            }
+        }
+
+        return 0;
+    }
+
     /**
      * Phone으로부터 SMS를 읽어 SmsRawData를 만든다.
      *
      * @return
      */
-    private int readAllSms()
+    private int readAllSmsFromContentProvider()
     {
         vectorSmsRawData = new Vector<SmsEntity>();
 

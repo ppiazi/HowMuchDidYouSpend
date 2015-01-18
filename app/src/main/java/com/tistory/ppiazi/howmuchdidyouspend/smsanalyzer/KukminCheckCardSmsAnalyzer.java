@@ -12,6 +12,11 @@ public class KukminCheckCardSmsAnalyzer extends SmsAnalyzer
 {
     private static final String TAG = "KukminBankCheckSmsAnalyzer";
 
+    public KukminCheckCardSmsAnalyzer(String name)
+    {
+        super(name);
+    }
+
     @Override
     /**
      * SMS의 문자열로 국민은행 체크카드 메세지인지 판단한다.
@@ -31,7 +36,7 @@ public class KukminCheckCardSmsAnalyzer extends SmsAnalyzer
         }
 
         // 국민은행 체크카드 메시지이면, 내용을 분석하여 정보를 추출한다.
-        CardSmsEntity ce = new CardSmsEntity(se);
+        CardSmsEntity ce = new CardSmsEntity(se, analyzerName);
 
         // 카드결제 금액 정보를 추출한다.
         ce.setCardCost(parseCost(str));

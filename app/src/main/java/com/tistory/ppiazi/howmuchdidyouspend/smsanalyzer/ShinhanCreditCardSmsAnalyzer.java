@@ -12,6 +12,11 @@ public class ShinhanCreditCardSmsAnalyzer extends SmsAnalyzer
 {
     private static final String TAG = "ShinhanBankSmsAnalyzer";
 
+    public ShinhanCreditCardSmsAnalyzer(String name)
+    {
+        super(name);
+    }
+
     @Override
     /**
      * SMS의 문자열로 신한은행 신용카드 메세지인지 판단한다.
@@ -30,7 +35,7 @@ public class ShinhanCreditCardSmsAnalyzer extends SmsAnalyzer
         }
 
         // 신한은행 신용카드 메시지이면, 내용을 분석하여 정보를 추출한다.
-        CardSmsEntity ce = new CardSmsEntity(se);
+        CardSmsEntity ce = new CardSmsEntity(se, analyzerName);
 
         // 카드결제 금액 정보를 추출한다.
         ce.setCardCost(parseCost(str));

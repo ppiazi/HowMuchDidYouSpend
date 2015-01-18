@@ -8,7 +8,33 @@ public class CardSmsEntity extends SmsEntity
     protected long cardCost = 0;
     protected String placeInUse = "";
 
-    public CardSmsEntity(SmsEntity se)
+    public String getVendorName()
+    {
+        return vendorName;
+    }
+
+    public void setVendorName(String vendorName)
+    {
+        this.vendorName = vendorName;
+    }
+
+    protected String vendorName = "";
+
+    public CardSmsEntity(String name)
+    {
+        msgId = -1;
+        threadId = -1;
+        address = "";
+        person = "";
+        contactId = -1;
+        contactStr = "";
+        timeStamp = -1;
+        body = "";
+        this.vendorName = name;
+        cardCost = 0;
+        placeInUse = "";
+    }
+    public CardSmsEntity(SmsEntity se, String name)
     {
         msgId = se.msgId;
         threadId = se.threadId;
@@ -18,6 +44,9 @@ public class CardSmsEntity extends SmsEntity
         contactStr = se.contactStr;
         timeStamp = se.timeStamp;
         body = se.body;
+        this.vendorName = name;
+        cardCost = 0;
+        placeInUse = "";
     }
 
     public long getCardCost()
