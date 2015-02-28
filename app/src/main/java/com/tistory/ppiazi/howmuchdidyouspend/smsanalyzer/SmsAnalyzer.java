@@ -64,7 +64,7 @@ public abstract class SmsAnalyzer
 
     protected abstract long parseTime(String str);
 
-    protected abstract long parseCost(String str);
+    public abstract long parseCost(String str);
 
     protected abstract String parsePlace(String str);
 

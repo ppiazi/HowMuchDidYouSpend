@@ -10,7 +10,7 @@ import com.tistory.ppiazi.howmuchdidyouspend.SmsEntity;
  */
 public class KukminCheckCardSmsAnalyzer extends SmsAnalyzer
 {
-    private static final String TAG = "KukminBankCheckSmsAnalyzer";
+    private static final String TAG = "KukminBankCheck";
 
     public KukminCheckCardSmsAnalyzer(String name)
     {
@@ -53,16 +53,22 @@ public class KukminCheckCardSmsAnalyzer extends SmsAnalyzer
     }
 
     @Override
-    protected long parseCost(String str)
+    public long parseCost(String str)
     {
         String[] lines = str.split("\n");
         String tmp = null;
         long tmpInteger = 0;
+        boolean granted = true;
 
-        if (lines.length != 5)
+        if (lines.length < 5)
         {
             Log.d(TAG, "Abnomal String : " + str);
             return 0;
+        }
+
+        if ( lines.length == 6 && lines[5].contains("승인취소") )
+        {
+            granted = false;
         }
 
         if (lines[3].contains("원"))
@@ -82,12 +88,13 @@ public class KukminCheckCardSmsAnalyzer extends SmsAnalyzer
         }
         else if (lines[3].contains("US"))
         {
-            tmp = lines[3].replace(".", "");
+            //tmp = lines[3].replace(".", "");
+            tmp = lines[3];
             tmp = tmp.replace("(US$)", "");
 
             try
             {
-                tmpInteger = Integer.parseInt(tmp);
+                tmpInteger = (long)Float.parseFloat(tmp);
                 tmpInteger = tmpInteger * 1000;
                 Log.d(TAG, lines[3] + " -> " + tmpInteger + " (US$)");
             }
@@ -95,6 +102,11 @@ public class KukminCheckCardSmsAnalyzer extends SmsAnalyzer
             {
                 e.printStackTrace();
             }
+        }
+
+        if ( granted == false )
+        {
+            tmpInteger = -1 * tmpInteger;
         }
 
         return tmpInteger;

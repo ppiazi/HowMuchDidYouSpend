@@ -52,7 +52,7 @@ public class ShinhanCreditCardSmsAnalyzer extends SmsAnalyzer
     }
 
     @Override
-    protected long parseCost(String str)
+    public long parseCost(String str)
     {
         String tmp = null;
         long tmpInteger = 0;
