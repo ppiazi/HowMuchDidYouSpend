@@ -42,7 +42,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     private BackPressCloseHandler closeHandler;
     private SQLiteDatabase db;
     private CardSmsSqlHelper dbHelper;
-    private TotalSummaryCardSmsAnalyzer listTotalSummaryCardSmsAnalyzer = null;
+    private TotalSummaryCardSmsAnalyzer listTotalSummaryCardSmsAnalyzer = null; // 전체 사용 내역을 저장하기 위한 SmsAnalyzer
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -116,6 +116,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         mapSmsAnalyzers.put("KB국민체크", new KukminCheckCardSmsAnalyzer("KB국민체크"));
         mapSmsAnalyzers.put("신한신용카드", new ShinhanCreditCardSmsAnalyzer("신한신용카드"));
 
+        // 전체사용내역을 위한 SmsAnalyzer 생성
         listTotalSummaryCardSmsAnalyzer = new TotalSummaryCardSmsAnalyzer("전체사용내역");
 
         // craete HashMap
@@ -156,7 +157,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 CardSmsEntity cse = sa.analyzeSms(entity);
                 if (cse != null)
                 {
-                    // 전체 사용 리스트에도 추가한다.
+                    // 전체사용내역 리스트에도 추가한다.
                     listTotalSummaryCardSmsAnalyzer.insertCardSmsEntity(cse);
                     insertCardSmsEntityIntoCardSmsDb(cse);
                     break;
@@ -292,7 +293,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             {
                 // 해당하는 리스트에 추가한다.
                 sa.insertCardSmsEntity(cse);
-                // 전체 사용 내역에도 추가한다.
+                // 전체사용내역에도 추가한다.
                 listTotalSummaryCardSmsAnalyzer.insertCardSmsEntity(cse);
             }
         }
