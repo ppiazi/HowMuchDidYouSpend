@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.tistory.ppiazi.howmuchdidyouspend.smsanalyzer.KukminCheckCardSmsAnalyzer;
 import com.tistory.ppiazi.howmuchdidyouspend.smsanalyzer.ShinhanCreditCardSmsAnalyzer;
 import com.tistory.ppiazi.howmuchdidyouspend.smsanalyzer.SmsAnalyzer;
+import com.tistory.ppiazi.howmuchdidyouspend.smsanalyzer.TotalSummaryCardSmsAnalyzer;
 
 import java.text.DecimalFormat;
 import java.util.Enumeration;
@@ -41,6 +42,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     private BackPressCloseHandler closeHandler;
     private SQLiteDatabase db;
     private CardSmsSqlHelper dbHelper;
+    private TotalSummaryCardSmsAnalyzer listTotalSummaryCardSmsAnalyzer = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -114,6 +116,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         mapSmsAnalyzers.put("KB국민체크", new KukminCheckCardSmsAnalyzer("KB국민체크"));
         mapSmsAnalyzers.put("신한신용카드", new ShinhanCreditCardSmsAnalyzer("신한신용카드"));
 
+        listTotalSummaryCardSmsAnalyzer = new TotalSummaryCardSmsAnalyzer("전체사용내역");
+
         // craete HashMap
         mapCardSmsResults = new HashMap<String, Vector<CardSmsEntity>>();
 
@@ -152,6 +156,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 CardSmsEntity cse = sa.analyzeSms(entity);
                 if (cse != null)
                 {
+                    // 전체 사용 리스트에도 추가한다.
+                    listTotalSummaryCardSmsAnalyzer.insertCardSmsEntity(cse);
                     insertCardSmsEntityIntoCardSmsDb(cse);
                     break;
                 }
@@ -196,11 +202,30 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
      */
     public void retrieveSmsList()
     {
-        // 모든 SMS의 분석이 끝났다면, 생성된 Vector<CardSmsEntity>를 저장한다.
         Iterator<String> iter2 = mapSmsAnalyzers.keySet().iterator();
         int pos = 0;
         listViewMap = new HashMap<Integer, String>();
+        // 모든 SMS의 분석이 끝났다면, 생성된 Vector<CardSmsEntity>를 저장한다.
+        if ( listTotalSummaryCardSmsAnalyzer == null )
+        {
+            Toast.makeText(this, "전체사용내역이 초기화되지 않았습니다.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
+        if ( listTotalSummaryCardSmsAnalyzer.getCount() == 0 )
+        {
+            Toast.makeText(this, "읽어들인 문자 메시지가 없습니다.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        mapCardSmsResults.put("전체사용내역", listTotalSummaryCardSmsAnalyzer.getCardSmsList());
+        DecimalFormat df = new DecimalFormat("###,##0");
+        String listItemStr = String.format("%s\n총 SMS 개수 : %s 개\n총 결재금액 : %s", "전체사용내역", df.format((double) listTotalSummaryCardSmsAnalyzer.getCount()), df.format((double) listTotalSummaryCardSmsAnalyzer.getTotal()));
+        adapterCardList.add(listItemStr);
+
+        listViewMap.put(pos++, "전체사용내역");
+
+        // 나머지 분석기에 해당하는 내용을 넣는다.
         while (iter2.hasNext())
         {
             // 분석기를 가져온다.
@@ -213,9 +238,10 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 mapCardSmsResults.put(key, sa.getCardSmsList());
 
                 Toast.makeText(this, key + " " + sa.getCount() + " Found.", Toast.LENGTH_SHORT).show();
-                DecimalFormat df = new DecimalFormat("###,##0");
-                String listItemStr = String.format("%s\n총 SMS 개수 : %s 개\n총 결재금액 : %s", key, df.format((double) sa.getCount()), df.format((double) sa.getTotal()));
+                df = new DecimalFormat("###,##0");
+                listItemStr = String.format("%s\n총 SMS 개수 : %s 개\n총 결재금액 : %s", key, df.format((double) sa.getCount()), df.format((double) sa.getTotal()));
                 adapterCardList.add(listItemStr);
+
                 listViewMap.put(pos++, key);
             }
         }
@@ -264,7 +290,10 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             }
             else
             {
+                // 해당하는 리스트에 추가한다.
                 sa.insertCardSmsEntity(cse);
+                // 전체 사용 내역에도 추가한다.
+                listTotalSummaryCardSmsAnalyzer.insertCardSmsEntity(cse);
             }
         }
 
